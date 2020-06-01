@@ -32,7 +32,10 @@ class JiraSearch(object):
         self.fields = ','.join(['key', 'summary', 'status', 'description', 'issuetype', 'issuelinks', 'subtasks'])
 
     def get(self, uri, params={}):
-        headers = {'Content-Type' : 'application/json'}
+        headers = {
+            'Content-Type' : 'application/json',
+            'Authorization': 'Basic'
+        }
         url = self.url + uri
 
         if isinstance(self.auth, str):
@@ -230,6 +233,7 @@ def parse_args():
     parser.add_argument('-u', '--user', dest='user', default=None, help='Username to access JIRA')
     parser.add_argument('-p', '--password', dest='password', default=None, help='Password to access JIRA')
     parser.add_argument('-c', '--cookie', dest='cookie', default=None, help='JSESSIONID session cookie value')
+    parser.add_argument('-to', '--token', dest='token', default=None, help='API Token')
     parser.add_argument('-j', '--jira', dest='jira_url', default='http://jira.example.com', help='JIRA Base URL (with protocol)')
     parser.add_argument('-f', '--file', dest='image_file', default='issue_graph.png', help='Filename to write image to')
     parser.add_argument('-l', '--local', action='store_true', default=False, help='Render graphviz code to stdout')
@@ -259,6 +263,7 @@ def filter_duplicates(lst):
 
 def main():
     options = parse_args()
+    auth=None
 
     if options.cookie is not None:
         # Log in with browser and use --cookie=ABCDEF012345 commandline argument
@@ -266,10 +271,10 @@ def main():
     else:
         # Basic Auth is usually easier for scripts like this to deal with than Cookies.
         user = options.user if options.user is not None \
-                    else input('Username: ')
-        password = options.password if options.password is not None \
-                    else getpass.getpass('Password: ')
-        auth = (user, password)
+                    else input('User email: ')
+        token = options.token if options.token is not None \
+                    else getpass.getpass('Token: ')
+        auth = (user, token)
 
     jira = JiraSearch(options.jira_url, auth, options.no_verify_ssl)
 
